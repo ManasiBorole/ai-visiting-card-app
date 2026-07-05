@@ -5,15 +5,15 @@ import Link from "next/link";
 import { useState } from "react";
 import {
   ArrowRight,
+  Brain,
   CheckCircle2,
   Loader2,
   Save,
-  ScanLine,
   Sparkles,
 } from "lucide-react";
 
-import { OcrReviewForm } from "@/components/ocr/ocr-review-form";
-import { OcrScanningOverlay } from "@/components/ocr/ocr-scanning-overlay";
+import { CardExtractionReviewForm } from "@/components/extraction/card-extraction-review-form";
+import { GeminiAnalyzingOverlay } from "@/components/extraction/gemini-analyzing-overlay";
 import {
   ImageSlotUploader,
   type PreparedImage,
@@ -26,14 +26,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  mergeExtractedFields,
-  parseCardText,
-} from "@/lib/ocr/parse-card-text";
-import { runOcrOnImage } from "@/lib/ocr/run-ocr";
+import { APP_TAGLINE } from "@/lib/constants";
 import { formatFileSize } from "@/lib/image-utils";
 import { ROUTES } from "@/lib/constants";
-import type { ExtractedCardFields } from "@/types/ocr";
+import {
+  extractWithGemini,
+  uploadCardImage,
+} from "@/lib/upload/client-extract";
+import type { ExtractedCardFields } from "@/types/extraction";
 
 type CategoryOption = {
   id: string;
@@ -45,40 +45,14 @@ type CardUploadSystemProps = {
   categories: CategoryOption[];
 };
 
-async function uploadImageSide(
-  image: PreparedImage,
-  side: "front" | "back"
-): Promise<PreparedImage> {
-  const formData = new FormData();
-  formData.append(
-    "file",
-    new File([image.blob], `${side}-card.jpg`, { type: "image/jpeg" })
-  );
-  formData.append("side", side);
-
-  const response = await fetch("/api/upload/card-image", {
-    method: "POST",
-    body: formData,
-  });
-
-  const result = await response.json();
-
-  if (!response.ok) {
-    throw new Error(result.error ?? `Failed to upload ${side} image`);
-  }
-
-  return {
-    ...image,
-    savedUrl: result.data.url as string,
-  };
-}
-
 export function CardUploadSystem({ categories }: CardUploadSystemProps) {
   const [frontImage, setFrontImage] = useState<PreparedImage | null>(null);
   const [backImage, setBackImage] = useState<PreparedImage | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [isScanning, setIsScanning] = useState(false);
-  const [scanStatus, setScanStatus] = useState("Preparing scan...");
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [scanStatus, setScanStatus] = useState(
+    "Understanding company, person, address and details"
+  );
   const [scanProgress, setScanProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -92,14 +66,14 @@ export function CardUploadSystem({ categories }: CardUploadSystemProps) {
   const [showReview, setShowReview] = useState(false);
 
   const canSave = Boolean(frontImage || backImage);
-  const canScan = Boolean(frontImage);
+  const canExtract = Boolean(frontImage);
   const hasSaved = Boolean(savedUrls.front || savedUrls.back);
 
   async function ensureImagesUploaded() {
     const uploads: { front?: string; back?: string } = { ...savedUrls };
 
     if (frontImage && !frontImage.savedUrl && !uploads.front) {
-      const saved = await uploadImageSide(frontImage, "front");
+      const saved = await uploadCardImage(frontImage, "front");
       setFrontImage(saved);
       uploads.front = saved.savedUrl;
     } else if (frontImage?.savedUrl) {
@@ -107,7 +81,7 @@ export function CardUploadSystem({ categories }: CardUploadSystemProps) {
     }
 
     if (backImage && !backImage.savedUrl && !uploads.back) {
-      const saved = await uploadImageSide(backImage, "back");
+      const saved = await uploadCardImage(backImage, "back");
       setBackImage(saved);
       uploads.back = saved.savedUrl;
     } else if (backImage?.savedUrl) {
@@ -139,53 +113,36 @@ export function CardUploadSystem({ categories }: CardUploadSystemProps) {
     }
   }
 
-  async function handleScanOcr() {
+  async function handleExtractDetails() {
     if (!frontImage) return;
 
-    setIsScanning(true);
+    setIsAnalyzing(true);
     setShowReview(false);
     setExtractedData(null);
     setError(null);
+    setScanProgress(10);
     setScanStatus("Uploading images...");
-    setScanProgress(8);
 
     try {
       const uploads = await ensureImagesUploaded();
 
-      setScanStatus("Scanning front side...");
-      setScanProgress(15);
+      setScanProgress(35);
+      setScanStatus("Understanding company, person, address and details");
 
-      const frontText = await runOcrOnImage(frontImage.blob, (progress) => {
-        setScanStatus(progress.status);
-        setScanProgress(Math.min(progress.progress, backImage ? 55 : 90));
-      });
+      const extracted = await extractWithGemini(frontImage, backImage);
 
-      let extracted = parseCardText(frontText);
-
-      if (backImage) {
-        setScanStatus("Scanning back side...");
-        setScanProgress(60);
-
-        const backText = await runOcrOnImage(backImage.blob, (progress) => {
-          setScanStatus(progress.status);
-          setScanProgress(60 + Math.round(progress.progress * 0.35));
-        });
-
-        extracted = mergeExtractedFields(extracted, parseCardText(backText));
-      }
-
+      setScanProgress(100);
       setSavedUrls(uploads);
       setExtractedData(extracted);
       setShowReview(true);
-      setScanProgress(100);
-    } catch (scanError) {
+    } catch (extractError) {
       setError(
-        scanError instanceof Error
-          ? scanError.message
-          : "OCR scan failed. Please try again."
+        extractError instanceof Error
+          ? extractError.message
+          : "AI extraction failed. Please try again."
       );
     } finally {
-      setIsScanning(false);
+      setIsAnalyzing(false);
     }
   }
 
@@ -201,37 +158,37 @@ export function CardUploadSystem({ categories }: CardUploadSystemProps) {
 
   return (
     <>
-      <OcrScanningOverlay
-        open={isScanning}
+      <GeminiAnalyzingOverlay
+        open={isAnalyzing}
         status={scanStatus}
         progress={scanProgress}
       />
 
       <div className="space-y-6">
-        <Card className="overflow-hidden border-border/60 bg-gradient-to-r from-primary/10 via-background to-background shadow-sm">
+        <Card className="glass-card premium-shadow overflow-hidden">
           <CardContent className="flex flex-col gap-4 p-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1 text-xs font-medium text-muted-foreground">
-                <Sparkles className="size-3.5 text-primary" />
-                OCR-powered upload
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
+                <Sparkles className="size-3.5" />
+                CardVault AI · Gemini Vision
               </div>
               <h2 className="text-2xl font-semibold tracking-tight">
-                Upload, scan, review, and save
+                Upload, analyze, review, and save
               </h2>
               <p className="max-w-2xl text-sm text-muted-foreground">
-                Upload card images, extract contact details with Tesseract.js OCR,
-                edit the preview, and save directly to your CRM database.
+                {APP_TAGLINE} Upload card images and let CardVault AI read the
+                complete visiting card before saving to your CRM.
               </p>
             </div>
             <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
               <span className="rounded-full border border-border/60 px-3 py-1">
-                Tesseract OCR
+                Gemini 2.5 Flash
+              </span>
+              <span className="rounded-full border border-border/60 px-3 py-1">
+                Vision analysis
               </span>
               <span className="rounded-full border border-border/60 px-3 py-1">
                 Crop & compress
-              </span>
-              <span className="rounded-full border border-border/60 px-3 py-1">
-                Mobile camera
               </span>
             </div>
           </CardContent>
@@ -276,42 +233,42 @@ export function CardUploadSystem({ categories }: CardUploadSystemProps) {
                 side="front"
                 value={frontImage}
                 onChange={setFrontImage}
-                disabled={isSaving || isScanning}
+                disabled={isSaving || isAnalyzing}
               />
               <ImageSlotUploader
                 label="Back image"
                 side="back"
                 value={backImage}
                 onChange={setBackImage}
-                disabled={isSaving || isScanning}
+                disabled={isSaving || isAnalyzing}
               />
             </div>
 
             <Card className="border-primary/20 bg-primary/5 shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <ScanLine className="size-5 text-primary" />
-                  OCR scan
+                  <Brain className="size-5 text-primary" />
+                  Gemini AI extraction
                 </CardTitle>
                 <CardDescription>
-                  Scan the front image to extract name, company, phone, email,
-                  website, address, and GST number
+                  Gemini Vision analyzes the full card image and returns
+                  structured JSON for review.
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm text-muted-foreground">
-                  {canScan
-                    ? "Ready to scan. Back image will be used to fill missing fields."
-                    : "Add a front image to enable OCR scanning."}
+                  {canExtract
+                    ? "Ready to analyze. Back image helps fill missing fields."
+                    : "Add a front image to start Gemini AI extraction."}
                 </p>
                 <Button
                   type="button"
                   className="gap-2"
-                  disabled={!canScan || isScanning || isSaving}
-                  onClick={handleScanOcr}
+                  disabled={!canExtract || isAnalyzing || isSaving}
+                  onClick={handleExtractDetails}
                 >
-                  <ScanLine className="size-4" />
-                  Scan & extract details
+                  <Brain className="size-4" />
+                  Extract & preview
                 </Button>
               </CardContent>
             </Card>
@@ -320,7 +277,7 @@ export function CardUploadSystem({ categories }: CardUploadSystemProps) {
               <CardHeader>
                 <CardTitle>Upload summary</CardTitle>
                 <CardDescription>
-                  Save images only, or scan first to extract contact data
+                  Save images only, or extract first to preview contact data
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -349,7 +306,7 @@ export function CardUploadSystem({ categories }: CardUploadSystemProps) {
                     type="button"
                     className="gap-2"
                     variant="outline"
-                    disabled={!canSave || isSaving || isScanning}
+                    disabled={!canSave || isSaving || isAnalyzing}
                     onClick={handleSaveImages}
                   >
                     {isSaving ? (
@@ -398,15 +355,15 @@ export function CardUploadSystem({ categories }: CardUploadSystemProps) {
             ) : null}
           </>
         ) : extractedData ? (
-          <OcrReviewForm
+          <CardExtractionReviewForm
             extracted={extractedData}
             frontImageUrl={savedUrls.front ?? frontImage?.savedUrl}
             backImageUrl={savedUrls.back ?? backImage?.savedUrl}
             categories={categories}
-            onRescan={() => {
+            onReanalyze={() => {
               setShowReview(false);
               setExtractedData(null);
-              handleScanOcr();
+              handleExtractDetails();
             }}
           />
         ) : null}

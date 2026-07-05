@@ -5,13 +5,13 @@ import { PenLine } from "lucide-react";
 
 import { auth } from "@/auth";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
-import { CardUploadSystem } from "@/components/upload/card-upload-system";
+import { UploadHub } from "@/components/upload/upload-hub";
 import { Button } from "@/components/ui/button";
-import { ROUTES } from "@/lib/constants";
+import { APP_TAGLINE, ROUTES } from "@/lib/constants";
 import { getCategoriesForSelect } from "@/services/visiting-card.service";
 
 export const metadata: Metadata = {
-  title: "Upload Card",
+  title: "Scan Cards",
 };
 
 export default async function UploadPage() {
@@ -25,8 +25,8 @@ export default async function UploadPage() {
 
   return (
     <DashboardShell
-      title="Upload visiting card"
-      subtitle="OCR scan, edit extracted data, and save to your CRM library"
+      title="Scan visiting cards"
+      subtitle={`${APP_TAGLINE} Single or bulk AI extraction.`}
       userName={session.user.name}
     >
       <div className="mb-6 flex justify-end">
@@ -37,7 +37,7 @@ export default async function UploadPage() {
           </Button>
         </Link>
       </div>
-      <CardUploadSystem categories={categories} />
+      <UploadHub categories={categories} />
     </DashboardShell>
   );
 }

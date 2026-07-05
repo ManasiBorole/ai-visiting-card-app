@@ -15,8 +15,7 @@
                            │
               ┌────────────┼────────────┐
               ▼            ▼            ▼
-         lib/ai/     lib/validations  storage/
-         lib/ocr/                        uploads/
+         lib/ai/     lib/gemini/  storage/
 ```
 
 ## Layers
@@ -84,13 +83,13 @@ Serwist generates `public/sw.js` at build time. Service worker caches static ass
 - Dynamic import of Recharts on dashboard
 - Debounced AI analysis hook
 - Parallel Prisma queries in dashboard stats
-- OCR loaded via dynamic import in client
+- Gemini Vision extraction via `/api/gemini/extract`
 
 ## Known limitations
 
 - In-memory rate limiting (single-instance only)
 - SQLite for development (not for production multi-instance)
-- AI features are rule-based heuristics, not external LLM calls
+- AI features use rule-based heuristics for duplicates/search; card upload uses Gemini Vision
 - Duplicate scan is O(n²) — acceptable for typical contact libraries
 
 ## Extension points

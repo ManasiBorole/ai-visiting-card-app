@@ -2,25 +2,25 @@ import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { APP_DESCRIPTION, APP_NAME, ROUTES } from "@/lib/constants";
+import { APP_NAME, APP_TAGLINE, ROUTES } from "@/lib/constants";
 
 export default function HomePage() {
   return (
     <div className="flex flex-col gap-10">
-      <section className="relative overflow-hidden rounded-2xl border border-border/60 bg-card p-8 shadow-sm sm:p-12">
-        <div className="absolute inset-y-0 right-0 hidden w-1/3 bg-gradient-to-l from-primary/5 to-transparent lg:block" />
+      <section className="glass-card premium-shadow relative overflow-hidden rounded-3xl p-8 sm:p-12">
+        <div className="absolute inset-y-0 right-0 hidden w-1/2 vault-gradient opacity-10 lg:block" />
         <div className="relative max-w-2xl space-y-6">
-          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1 text-xs font-medium text-muted-foreground">
-            <Sparkles className="size-3.5 text-primary" />
-            AI-powered card management
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
+            <Sparkles className="size-3.5" />
+            Premium executive CRM
           </div>
           <div className="space-y-3">
-            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+            <h1 className="text-3xl font-semibold tracking-tight sm:text-5xl">
               {APP_NAME}
             </h1>
             <p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
-              {APP_DESCRIPTION}. Securely store, organize, and access every
-              visiting card from one premium dashboard.
+              {APP_TAGLINE} Securely store, organize, and access every visiting
+              card from one premium dashboard.
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">

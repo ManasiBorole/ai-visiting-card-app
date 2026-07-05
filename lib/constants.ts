@@ -1,7 +1,9 @@
-export const APP_NAME = "Visiting Card AI";
-export const APP_DESCRIPTION =
-  "Premium AI-powered visiting card management platform";
-export const PWA_SHORT_NAME = "Card AI";
+export const APP_NAME = "CardVault";
+export const APP_TAGLINE =
+  "Where business cards become business opportunities.";
+export const APP_DESCRIPTION = APP_TAGLINE;
+export const PWA_SHORT_NAME = "CardVault";
+export const BULK_SCAN_MAX_CARDS = 10;
 
 export const ROUTES = {
   home: "/",

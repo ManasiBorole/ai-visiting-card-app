@@ -47,13 +47,13 @@ Responses use JSON unless noted:
 
 Query params: `q`, `name`, `company`, `phone`, `email`, `city`, `state`, `gst`, `categoryId`, `tag`, `sort`
 
-## Upload & OCR
+## Upload & Gemini Vision
 
 | Method | Path | Description |
 |--------|------|-------------|
 | POST | `/api/upload/card-image` | Upload front/back image (max 5MB) |
 | GET | `/api/uploads/cards/[userId]/[filename]` | Serve private image (owner only) |
-| POST | `/api/ocr/parse` | Parse image text with OCR |
+| POST | `/api/gemini/extract` | Extract card fields with Gemini Vision AI |
 
 ## AI
 

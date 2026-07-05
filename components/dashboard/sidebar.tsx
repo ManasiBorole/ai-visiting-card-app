@@ -14,8 +14,9 @@ import {
 } from "lucide-react";
 
 import { LogoutButton } from "@/components/auth/logout-button";
+import { BrandLogo } from "@/components/brand/brand-logo";
 import { Separator } from "@/components/ui/separator";
-import { APP_NAME, DASHBOARD_NAV, ROUTES } from "@/lib/constants";
+import { APP_TAGLINE, DASHBOARD_NAV, ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 const iconMap = {
@@ -41,19 +42,16 @@ export function DashboardSidebar({
   const pathname = usePathname();
 
   return (
-    <div className={cn("flex h-full flex-col", className)}>
-      <div className="flex h-14 items-center gap-3 border-b border-sidebar-border px-4">
-        <div className="flex size-9 items-center justify-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground shadow-sm">
-          <span className="text-xs font-bold">VC</span>
-        </div>
-        <div className="min-w-0">
-          <p className="truncate text-sm font-semibold tracking-tight">
-            {APP_NAME}
-          </p>
-          <p className="truncate text-xs text-sidebar-foreground/70">
-            CRM Dashboard
-          </p>
-        </div>
+    <div className={cn("flex h-full flex-col bg-sidebar text-sidebar-foreground", className)}>
+      <div className="border-b border-sidebar-border px-4 py-5">
+        <BrandLogo
+          size="md"
+          subtitle="Executive CRM"
+          className="[&_p:first-child]:text-sidebar-foreground [&_p:last-child]:text-sidebar-foreground/60"
+        />
+        <p className="mt-3 text-xs leading-relaxed text-sidebar-foreground/60">
+          {APP_TAGLINE}
+        </p>
       </div>
 
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">
@@ -69,10 +67,10 @@ export function DashboardSidebar({
               href={item.href}
               onClick={onNavigate}
               className={cn(
-                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
+                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
                 isActive
-                  ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
-                  : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                  ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-lg shadow-black/10"
+                  : "text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
               )}
             >
               <Icon className="size-4 shrink-0" />
@@ -86,7 +84,7 @@ export function DashboardSidebar({
         <Link
           href={ROUTES.profile}
           onClick={onNavigate}
-          className="mb-2 block rounded-xl px-3 py-2 text-sm text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          className="mb-2 block rounded-xl px-3 py-2 text-sm text-sidebar-foreground/75 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
         >
           View profile
         </Link>

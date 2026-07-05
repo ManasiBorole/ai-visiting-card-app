@@ -72,7 +72,7 @@ Security headers are configured in `next.config.ts`:
 - `X-Frame-Options: DENY`
 - `X-Content-Type-Options: nosniff`
 - `Referrer-Policy: strict-origin-when-cross-origin`
-- `Permissions-Policy` for camera (OCR upload)
+- `Permissions-Policy` for camera (card photo upload)
 
 ## Rate limiting
 

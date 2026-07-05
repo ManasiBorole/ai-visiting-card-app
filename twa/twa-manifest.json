@@ -1,8 +1,8 @@
 {
   "packageId": "ai.visitingcard.app",
   "host": "your-production-domain.com",
-  "name": "Visiting Card AI",
-  "launcherName": "Card AI",
+  "name": "CardVault",
+  "launcherName": "CardVault",
   "display": "standalone",
   "themeColor": "#4338CA",
   "navigationColor": "#4338CA",

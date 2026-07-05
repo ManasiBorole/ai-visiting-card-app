@@ -52,6 +52,16 @@ export {
   restoreUserBackup,
   updateUserProfile,
 } from "@/services/settings.service";
-export { registerUser, registerSchema, verifyUserCredentials } from "@/services/auth.service";
+export {
+  extractBusinessCard,
+  extractBusinessCardFields,
+  isGeminiConfigured,
+} from "@/services/gemini.service";
+export type { GeminiImageInput } from "@/services/gemini.service";
 export type { RegisterInput } from "@/services/auth.service";
+export {
+  registerUser,
+  registerSchema,
+  verifyUserCredentials,
+} from "@/services/auth.service";
 export { getUserProfile, getUserVisitingCards } from "@/services/user.service";

@@ -32,13 +32,16 @@ export const env = {
   databaseUrl:
     process.env.DATABASE_URL ?? "file:./prisma/dev.db",
   authSecret: getAuthSecret(),
-  appName: process.env.NEXT_PUBLIC_APP_NAME ?? "Visiting Card AI",
+  appName: process.env.NEXT_PUBLIC_APP_NAME ?? "CardVault",
   appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
   googleClientId: getRequiredEnv("GOOGLE_CLIENT_ID", false),
   googleClientSecret: getRequiredEnv("GOOGLE_CLIENT_SECRET", false),
+  geminiApiKey: getRequiredEnv("GEMINI_API_KEY", false),
   isDev: process.env.NODE_ENV === "development",
   isProd: process.env.NODE_ENV === "production",
 } as const;
 
 export const googleAuthEnabled =
   Boolean(env.googleClientId) && Boolean(env.googleClientSecret);
+
+export const geminiEnabled = Boolean(env.geminiApiKey);

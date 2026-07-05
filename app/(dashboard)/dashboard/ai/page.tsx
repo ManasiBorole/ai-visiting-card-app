@@ -20,7 +20,7 @@ export default async function AiPage() {
   return (
     <DashboardShell
       title="AI Assistant"
-      subtitle="Smart duplicate detection, summaries, search, and OCR corrections"
+      subtitle="Smart duplicate detection, summaries, search, and field corrections"
       userName={session.user.name}
     >
       <AiHubPanel />

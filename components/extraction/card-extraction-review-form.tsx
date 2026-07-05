@@ -21,7 +21,7 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { visitingCardFormSchema } from "@/lib/validations/visiting-card";
 import { ROUTES } from "@/lib/constants";
-import type { ExtractedCardFields } from "@/types/ocr";
+import type { ExtractedCardFields } from "@/types/extraction";
 import { useAiContactAnalysis } from "@/hooks/use-ai-contact-analysis";
 
 type CategoryOption = {
@@ -30,31 +30,35 @@ type CategoryOption = {
   color: string;
 };
 
-type OcrReviewFormProps = {
+type CardExtractionReviewFormProps = {
   extracted: ExtractedCardFields;
   frontImageUrl?: string;
   backImageUrl?: string;
   categories: CategoryOption[];
-  onRescan: () => void;
+  onReanalyze: () => void;
 };
 
 type ReviewFormState = ExtractedCardFields & {
   categoryId: string;
-  notes: string;
 };
 
-export function OcrReviewForm({
+export function CardExtractionReviewForm({
   extracted,
   frontImageUrl,
   backImageUrl,
   categories,
-  onRescan,
-}: OcrReviewFormProps) {
+  onReanalyze,
+}: CardExtractionReviewFormProps) {
   const router = useRouter();
   const [form, setForm] = useState<ReviewFormState>({
     ...extracted,
     categoryId: "",
-    notes: "",
+    alternateMobile: extracted.alternateMobile ?? "",
+    city: extracted.city ?? "",
+    state: extracted.state ?? "",
+    country: extracted.country ?? "",
+    pinCode: extracted.pinCode ?? "",
+    notes: extracted.notes ?? "",
   });
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -70,6 +74,8 @@ export function OcrReviewForm({
       email: form.email,
       website: form.website,
       address: form.address,
+      city: form.city,
+      state: form.state,
       gstNumber: form.gstNumber,
       notes: form.notes,
     },
@@ -93,10 +99,11 @@ export function OcrReviewForm({
     const parsed = visitingCardFormSchema.safeParse({
       ...form,
       categoryId: form.categoryId || undefined,
-      alternateMobile: undefined,
-      city: undefined,
-      state: undefined,
-      pinCode: undefined,
+      alternateMobile: form.alternateMobile || undefined,
+      city: form.city || undefined,
+      state: form.state || undefined,
+      country: form.country || undefined,
+      pinCode: form.pinCode || undefined,
       frontImage: frontImageUrl,
       backImage: backImageUrl,
     });
@@ -142,7 +149,7 @@ export function OcrReviewForm({
       }
 
       setSuccessMessage(
-        result.message ?? "Visiting card saved successfully from OCR scan"
+        result.message ?? "Visiting card saved successfully from Gemini AI extraction"
       );
       router.refresh();
     } catch {
@@ -167,7 +174,7 @@ export function OcrReviewForm({
                   {successMessage}
                 </p>
                 <p className="mt-1 text-sm text-emerald-700/80 dark:text-emerald-300/80">
-                  OCR extracted data has been saved to your CRM library.
+                  Gemini Vision extracted data has been saved to your CRM library.
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -212,11 +219,11 @@ export function OcrReviewForm({
           <div>
             <CardTitle>Extracted data preview</CardTitle>
             <CardDescription>
-              Review and edit OCR results before saving to the database
+              Review and edit Gemini Vision results before saving to the database
             </CardDescription>
           </div>
-          <Button type="button" variant="outline" size="sm" onClick={onRescan}>
-            Rescan
+          <Button type="button" variant="outline" size="sm" onClick={onReanalyze}>
+            Analyze again
           </Button>
         </CardHeader>
         <CardContent className="grid gap-6 lg:grid-cols-[240px_1fr]">
@@ -225,7 +232,7 @@ export function OcrReviewForm({
               <div className="relative aspect-[1.586/1] overflow-hidden rounded-xl border border-border/60 bg-muted/20">
                 <Image
                   src={frontImageUrl}
-                  alt="Scanned front"
+                  alt="Card front"
                   fill
                   className="object-contain p-2"
                   unoptimized
@@ -239,7 +246,7 @@ export function OcrReviewForm({
               <div className="relative aspect-[1.586/1] overflow-hidden rounded-xl border border-border/60 bg-muted/20">
                 <Image
                   src={backImageUrl}
-                  alt="Scanned back"
+                  alt="Card back"
                   fill
                   className="object-contain p-2"
                   unoptimized
@@ -254,21 +261,21 @@ export function OcrReviewForm({
           <div className="grid gap-4 sm:grid-cols-2">
             <FormField
               label="Name"
-              htmlFor="ocr-name"
+              htmlFor="extract-name"
               required
               error={errors.name}
               className="sm:col-span-2"
             >
               <Input
-                id="ocr-name"
+                id="extract-name"
                 value={form.name}
                 onChange={(event) => updateField("name", event.target.value)}
               />
             </FormField>
 
-            <FormField label="Company" htmlFor="ocr-company" error={errors.company}>
+            <FormField label="Company" htmlFor="extract-company" error={errors.company}>
               <Input
-                id="ocr-company"
+                id="extract-company"
                 value={form.company}
                 onChange={(event) => updateField("company", event.target.value)}
               />
@@ -276,11 +283,11 @@ export function OcrReviewForm({
 
             <FormField
               label="Designation"
-              htmlFor="ocr-designation"
+              htmlFor="extract-designation"
               error={errors.designation}
             >
               <Input
-                id="ocr-designation"
+                id="extract-designation"
                 value={form.designation}
                 onChange={(event) =>
                   updateField("designation", event.target.value)
@@ -288,34 +295,48 @@ export function OcrReviewForm({
               />
             </FormField>
 
-            <FormField label="Mobile" htmlFor="ocr-mobile" error={errors.mobile}>
+            <FormField label="Mobile" htmlFor="extract-mobile" error={errors.mobile}>
               <Input
-                id="ocr-mobile"
+                id="extract-mobile"
                 value={form.mobile}
                 onChange={(event) => updateField("mobile", event.target.value)}
               />
             </FormField>
 
-            <FormField label="Email" htmlFor="ocr-email" error={errors.email}>
+            <FormField
+              label="Alternate mobile"
+              htmlFor="extract-alternate-mobile"
+              error={errors.alternateMobile}
+            >
               <Input
-                id="ocr-email"
+                id="extract-alternate-mobile"
+                value={form.alternateMobile ?? ""}
+                onChange={(event) =>
+                  updateField("alternateMobile", event.target.value)
+                }
+              />
+            </FormField>
+
+            <FormField label="Email" htmlFor="extract-email" error={errors.email}>
+              <Input
+                id="extract-email"
                 type="email"
                 value={form.email}
                 onChange={(event) => updateField("email", event.target.value)}
               />
             </FormField>
 
-            <FormField label="Website" htmlFor="ocr-website" error={errors.website}>
+            <FormField label="Website" htmlFor="extract-website" error={errors.website}>
               <Input
-                id="ocr-website"
+                id="extract-website"
                 value={form.website}
                 onChange={(event) => updateField("website", event.target.value)}
               />
             </FormField>
 
-            <FormField label="GST number" htmlFor="ocr-gst" error={errors.gstNumber}>
+            <FormField label="GST number" htmlFor="extract-gst" error={errors.gstNumber}>
               <Input
-                id="ocr-gst"
+                id="extract-gst"
                 value={form.gstNumber}
                 onChange={(event) =>
                   updateField("gstNumber", event.target.value)
@@ -325,21 +346,53 @@ export function OcrReviewForm({
 
             <FormField
               label="Address"
-              htmlFor="ocr-address"
+              htmlFor="extract-address"
               error={errors.address}
               className="sm:col-span-2"
             >
               <Textarea
-                id="ocr-address"
+                id="extract-address"
                 value={form.address}
                 onChange={(event) => updateField("address", event.target.value)}
                 rows={3}
               />
             </FormField>
 
-            <FormField label="Category" htmlFor="ocr-category" error={errors.categoryId}>
+            <FormField label="City" htmlFor="extract-city" error={errors.city}>
+              <Input
+                id="extract-city"
+                value={form.city ?? ""}
+                onChange={(event) => updateField("city", event.target.value)}
+              />
+            </FormField>
+
+            <FormField label="State" htmlFor="extract-state" error={errors.state}>
+              <Input
+                id="extract-state"
+                value={form.state ?? ""}
+                onChange={(event) => updateField("state", event.target.value)}
+              />
+            </FormField>
+
+            <FormField label="Country" htmlFor="extract-country" error={errors.country}>
+              <Input
+                id="extract-country"
+                value={form.country ?? ""}
+                onChange={(event) => updateField("country", event.target.value)}
+              />
+            </FormField>
+
+            <FormField label="PIN code" htmlFor="extract-pin" error={errors.pinCode}>
+              <Input
+                id="extract-pin"
+                value={form.pinCode ?? ""}
+                onChange={(event) => updateField("pinCode", event.target.value)}
+              />
+            </FormField>
+
+            <FormField label="Category" htmlFor="extract-category" error={errors.categoryId}>
               <Select
-                id="ocr-category"
+                id="extract-category"
                 value={form.categoryId}
                 onChange={(event) => updateField("categoryId", event.target.value)}
               >
@@ -354,16 +407,16 @@ export function OcrReviewForm({
 
             <FormField
               label="Notes"
-              htmlFor="ocr-notes"
+              htmlFor="extract-notes"
               error={errors.notes}
               className="sm:col-span-2"
             >
               <Textarea
-                id="ocr-notes"
+                id="extract-notes"
                 value={form.notes}
                 onChange={(event) => updateField("notes", event.target.value)}
                 rows={2}
-                placeholder="Optional notes from OCR review"
+                placeholder="Optional notes from Gemini extraction"
               />
             </FormField>
           </div>

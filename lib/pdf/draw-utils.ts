@@ -31,7 +31,7 @@ export function drawPageChrome(
   doc.rect(0, 72, doc.page.width, 4).fill(PDF_THEME.accent);
 
   doc.fillColor(PDF_THEME.white).font("Helvetica-Bold").fontSize(18);
-  doc.text("Visiting Card AI", PDF_MARGINS.left, 24, {
+  doc.text("CardVault", PDF_MARGINS.left, 24, {
     width: contentWidth(doc),
   });
 

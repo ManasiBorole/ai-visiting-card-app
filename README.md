@@ -1,12 +1,14 @@
-# Visiting Card AI
+# CardVault
+
+Where business cards become business opportunities.
 
 Premium AI-powered visiting card management platform built with Next.js 15, React 19, Prisma, and SQLite/PostgreSQL.
 
 ## Features
 
 - **Contact CRM** — store, search, categorize, and manage visiting cards
-- **OCR upload** — scan cards with Tesseract.js and review extracted fields
-- **AI assistant** — duplicate detection, category suggestions, smart search, OCR corrections
+- **AI card upload** — Gemini Vision reads visiting cards and extracts structured contact data
+- **AI assistant** — duplicate detection, category suggestions, smart search, field corrections
 - **Import / export** — CSV, Excel, JSON backup, PDF reports
 - **PWA** — installable app with offline support and Android APK readiness
 - **Auth** — email/password and optional Google OAuth
@@ -55,6 +57,7 @@ Optional:
 |----------|-------------|
 | `GOOGLE_CLIENT_ID` | Google OAuth client ID |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
+| `GEMINI_API_KEY` | Google Gemini Vision API key (primary card extraction) |
 
 ## Scripts
 
@@ -108,7 +111,7 @@ docs/                Extended documentation
 - **Database:** Prisma 7, SQLite (dev) / PostgreSQL (prod)
 - **Auth:** Auth.js (NextAuth v5)
 - **PWA:** Serwist
-- **OCR:** Tesseract.js
+- **Vision AI:** Google Gemini 2.5 Flash
 - **Charts:** Recharts
 
 ## License

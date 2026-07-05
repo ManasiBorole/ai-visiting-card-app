@@ -43,7 +43,7 @@ export function DashboardHeader({
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur-xl premium-shadow">
       <div className="flex h-16 items-center gap-3 px-4 sm:px-6">
         {showMenuButton ? (
           <Button

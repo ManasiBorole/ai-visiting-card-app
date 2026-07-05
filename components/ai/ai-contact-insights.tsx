@@ -81,7 +81,7 @@ export function AiContactInsights({
           AI insights
         </CardTitle>
         <CardDescription>
-          Smart suggestions powered by Visiting Card AI
+          Smart suggestions powered by CardVault AI
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -175,7 +175,7 @@ export function AiContactInsights({
           <div className="rounded-xl border border-border/60 bg-background/80 p-4">
             <div className="mb-2 flex items-center gap-2 text-sm font-medium">
               <Wand2 className="size-4 text-primary" />
-              OCR correction suggestions
+              Smart field correction suggestions
             </div>
             <div className="space-y-2">
               {analysis.ocrCorrections.map((correction) => (

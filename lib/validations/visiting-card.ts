@@ -54,6 +54,7 @@ export const createVisitingCardSchema = z.object({
   address: optionalString,
   city: optionalString,
   state: optionalString,
+  country: optionalString,
   pinCode: pinCodeSchema,
   gstNumber: gstSchema,
   categoryId: optionalString,

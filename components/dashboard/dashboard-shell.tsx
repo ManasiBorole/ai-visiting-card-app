@@ -24,8 +24,8 @@ export function DashboardShell({
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <aside className="hidden w-64 shrink-0 border-r border-sidebar-border bg-sidebar lg:fixed lg:inset-y-0 lg:flex lg:w-72">
+    <div className="flex min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+      <aside className="hidden w-64 shrink-0 border-r border-sidebar-border lg:fixed lg:inset-y-0 lg:flex lg:w-72">
         <DashboardSidebar className="w-full" />
       </aside>
 

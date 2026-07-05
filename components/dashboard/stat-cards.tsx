@@ -73,7 +73,7 @@ export function StatCards({
         return (
           <Card
             key={stat.key}
-            className="overflow-hidden border-border/60 shadow-sm"
+            className="glass-card premium-shadow overflow-hidden transition-transform duration-200 hover:-translate-y-0.5"
           >
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">

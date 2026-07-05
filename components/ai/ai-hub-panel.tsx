@@ -98,9 +98,9 @@ export function AiHubPanel() {
           },
           {
             icon: Wand2,
-            title: "OCR correction suggestions",
+            title: "Smart field corrections",
             description:
-              "Fixes common OCR mistakes in email, phone, GST, and website fields.",
+              "Suggests fixes for common typos in email, phone, GST, and website fields.",
           },
           {
             icon: Brain,
