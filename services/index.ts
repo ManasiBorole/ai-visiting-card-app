@@ -6,7 +6,11 @@ export {
   getVisitingCardById,
   updateVisitingCard,
 } from "@/services/visiting-card.service";
-export { saveCardImage, readStoredCardImage, buildUploadApiUrl } from "@/services/upload.service";
+export {
+  saveCardImage,
+  readStoredCardImage,
+  buildUploadApiUrl,
+} from "@/services/upload.service";
 export {
   getAllUserCards,
   getDashboardStats,

@@ -1,3 +1,4 @@
+import { deleteCloudinaryAssetsByUrl, deleteCloudinaryAssetByUrl } from "@/lib/cloudinary";
 import { prisma } from "@/database/client";
 import {
   createVisitingCardSchema,
@@ -125,6 +126,15 @@ export async function updateVisitingCard(
     }
   }
 
+  const nextFrontImage =
+    data.frontImage === undefined ? existing.frontImage : data.frontImage || null;
+  const nextBackImage =
+    data.backImage === undefined ? existing.backImage : data.backImage || null;
+  const previousFrontImage = existing.frontImage;
+  const previousBackImage = existing.backImage;
+  const frontImageChanged = nextFrontImage !== previousFrontImage;
+  const backImageChanged = nextBackImage !== previousBackImage;
+
   const card = await prisma.visitingCard.update({
     where: { id: cardId },
     data: {
@@ -142,8 +152,8 @@ export async function updateVisitingCard(
       gstNumber: data.gstNumber,
       notes: data.notes,
       categoryId: data.categoryId ?? null,
-      frontImage: data.frontImage,
-      backImage: data.backImage,
+      frontImage: nextFrontImage,
+      backImage: nextBackImage,
     },
     include: {
       category: {
@@ -160,6 +170,14 @@ export async function updateVisitingCard(
     },
   });
 
+  if (frontImageChanged) {
+    await deleteCloudinaryAssetByUrl(previousFrontImage);
+  }
+
+  if (backImageChanged) {
+    await deleteCloudinaryAssetByUrl(previousBackImage);
+  }
+
   return card;
 }
 
@@ -172,6 +190,8 @@ export async function deleteVisitingCard(userId: string, cardId: string) {
     throw new Error("Visiting card not found");
   }
 
+  const imagesToDelete = [existing.frontImage, existing.backImage];
+
   await prisma.visitingCard.delete({
     where: { id: cardId },
   });
@@ -182,6 +202,8 @@ export async function deleteVisitingCard(userId: string, cardId: string) {
       userId,
     },
   });
+
+  await deleteCloudinaryAssetsByUrl(imagesToDelete);
 
   return existing;
 }

@@ -1,7 +1,9 @@
-import { mkdir, readFile, writeFile } from "fs/promises";
+import { readFile } from "fs/promises";
 import path from "path";
+
 import { randomUUID } from "crypto";
 
+import { configureCloudinary } from "@/lib/cloudinary";
 import {
   detectImageMimeType,
   validateImageBuffer,
@@ -10,6 +12,7 @@ import {
 export type CardImageSide = "front" | "back";
 
 export const MAX_FILE_SIZE = 5 * 1024 * 1024;
+
 const STORAGE_ROOT = path.join(process.cwd(), "storage", "uploads", "cards");
 const LEGACY_PUBLIC_ROOT = path.join(process.cwd(), "public", "uploads", "cards");
 
@@ -17,25 +20,29 @@ export function buildUploadApiUrl(userId: string, filename: string) {
   return `/api/uploads/cards/${userId}/${filename}`;
 }
 
-export function resolveCardImageUrl(url: string | null | undefined) {
-  if (!url) return null;
+function getCloudinaryFolder(userId: string, side: CardImageSide) {
+  return `cardvault/users/${userId}/${side}`;
+}
 
-  if (url.startsWith("/api/uploads/cards/")) {
-    return url;
+function assertSafePathSegment(value: string, label: string) {
+  if (
+    !value ||
+    value.includes("..") ||
+    value.includes("/") ||
+    value.includes("\\")
+  ) {
+    throw new Error(`Invalid ${label}`);
   }
-
-  const legacyMatch = url.match(/^\/uploads\/cards\/([^/]+)\/(.+)$/);
-
-  if (legacyMatch) {
-    const [, userId, filename] = legacyMatch;
-    return buildUploadApiUrl(userId, filename);
-  }
-
-  return url;
 }
 
 export async function readStoredCardImage(userId: string, filename: string) {
+  assertSafePathSegment(userId, "userId");
+
   const safeName = path.basename(filename);
+
+  if (!safeName || safeName !== filename) {
+    throw new Error("Invalid filename");
+  }
   const privatePath = path.join(STORAGE_ROOT, userId, safeName);
   const legacyPath = path.join(LEGACY_PUBLIC_ROOT, userId, safeName);
 
@@ -67,22 +74,26 @@ export async function saveCardImage(
     throw new Error("Invalid image file. Use JPG, PNG, or WebP.");
   }
 
-  const extension =
-    detectedMime === "image/png"
-      ? "png"
-      : detectedMime === "image/webp"
-        ? "webp"
-        : "jpg";
+  const cloudinary = configureCloudinary();
+  const publicId = `${Date.now()}-${randomUUID()}`;
 
-  const filename = `${Date.now()}-${randomUUID()}-${side}.${extension}`;
-  const absoluteDir = path.join(STORAGE_ROOT, userId);
+  const result = await cloudinary.uploader.upload(
+    `data:${detectedMime};base64,${buffer.toString("base64")}`,
+    {
+      folder: getCloudinaryFolder(userId, side),
+      public_id: publicId,
+      resource_type: "image",
+      overwrite: false,
+    }
+  );
 
-  await mkdir(absoluteDir, { recursive: true });
-  await writeFile(path.join(absoluteDir, filename), buffer);
+  if (!result.secure_url) {
+    throw new Error("Cloudinary upload did not return a secure URL.");
+  }
 
   return {
-    url: buildUploadApiUrl(userId, filename),
-    filename,
+    url: result.secure_url,
+    filename: result.public_id,
     size: buffer.byteLength,
     side,
     mimeType: detectedMime,

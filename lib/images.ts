@@ -3,6 +3,10 @@ export function resolveCardImageUrl(url: string | null | undefined) {
     return null;
   }
 
+  if (url.startsWith("http://") || url.startsWith("https://")) {
+    return url;
+  }
+
   if (url.startsWith("/api/uploads/cards/")) {
     return url;
   }
@@ -15,4 +19,8 @@ export function resolveCardImageUrl(url: string | null | undefined) {
   }
 
   return url;
+}
+
+export function isCloudinaryImageUrl(url: string | null | undefined) {
+  return Boolean(url?.includes("res.cloudinary.com"));
 }

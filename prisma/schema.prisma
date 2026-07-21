@@ -1,5 +1,4 @@
-// AI Visiting Card Management — Prisma Schema
-// Development: SQLite | Production: change provider to "postgresql" and use @prisma/adapter-pg
+// CardVault — Prisma Schema (PostgreSQL / Neon)
 
 generator client {
   provider = "prisma-client"
@@ -7,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 model User {
